@@ -88,14 +88,14 @@ func CollectionCloudEventHandler(
 		labels = map[string]string{}
 	}
 
-	labels["executionIds"] = ""
+	labels["SYNTHETIC_EXECUTION_IDS"] = ""
 	if len(executionIds) > 0 {
-		labels["executionIds"] = strings.Join(executionIds, ",")
+		labels["SYNTHETIC_EXECUTION_IDS"] = strings.Join(executionIds, ",")
 	}
 
-	labels["batchIds"] = ""
+	labels["SYNTHETIC_BATCH_IDS"] = ""
 	if len(batchIds) > 0 {
-		labels["batchIds"] = strings.Join(batchIds, ",")
+		labels["SYNTHETIC_BATCH_IDS"] = strings.Join(batchIds, ",")
 	}
 
 	eventData.SetLabels(labels)
