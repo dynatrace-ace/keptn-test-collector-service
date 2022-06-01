@@ -2,8 +2,8 @@ keptnApiTokenSecret: keptn-api-token
 
 image:
   repository: "dynatraceace/keptn-test-collector-service" # Container Image Name
-  pullPolicy: Always                         # Kubernetes Image Pull Policy
-  tag: "latest"                               # Container Tag
+  pullPolicy: IfNotPresent                   # Kubernetes Image Pull Policy
+  tag: "0.1.0"                               # Container Tag
 service:
   enabled: true                              # Creates a Kubernetes Service for the keptn-service-template-go
 
