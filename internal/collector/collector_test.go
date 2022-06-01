@@ -65,52 +65,23 @@ func TestGetEvents(t *testing.T) {
 		dataStoreBaseUrl: server.URL,
 		dataStorePath:    "/event",
 		keptnApiToken:    "token",
-		keptnContext:     "keptnContext",
 		httpClient:       server.Client(),
 	}
 
-	events, err := c.GetEvents()
-	assert.NilError(t, err)
-	assert.Equal(t, len(events), 2)
-}
-
-func TestGetTestStartedEvents(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/event" {
-			t.Errorf("Expected to request '/event', got: %s", r.URL.Path)
-		}
-
-		if r.Header.Get("Accept") != "application/json" {
-			t.Errorf("Expected Accept: application/json header, got: %s", r.Header.Get("Accept"))
-		}
-
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"events":[{ "specversion": "1.0" },{ "specversion": "1.0" }]}`))
-	}))
-	defer server.Close()
-
-	c := Collector{
-		dataStoreBaseUrl: server.URL,
-		dataStorePath:    "/event",
-		keptnApiToken:    "token",
-		keptnContext:     "keptnContext",
-		httpClient:       server.Client(),
-	}
-
-	events, err := c.GetTestStartedEvents()
+	events, err := c.GetEvents("keptnContext")
 	assert.NilError(t, err)
 	assert.Equal(t, len(events), 2)
 }
 
 func TestParseEventsOfType(t *testing.T) {
-	c := NewCollector("")
+	c := NewCollector()
 
 	events := c.ParseEventsOfType([]cloudevents.Event{}, "")
 	assert.Equal(t, len(events), 0)
 }
 
 func TestMustParseEventsOfType(t *testing.T) {
-	c := NewCollector("")
+	c := NewCollector()
 
 	events, err := c.MustParseEventsOfType([]cloudevents.Event{}, "sh.keptn.event.test.finished")
 	assert.Error(t, err, "no events found")
@@ -122,7 +93,7 @@ func TestMustParseEventsOfType(t *testing.T) {
 }
 
 func TestCollectExecutionIds(t *testing.T) {
-	c := NewCollector("")
+	c := NewCollector()
 
 	executionIds, err := c.CollectExecutionIds([]cloudevents.Event{newMockTestFinishedEvent(), newMockTestStartedEvent()})
 	assert.NilError(t, err)
@@ -130,7 +101,7 @@ func TestCollectExecutionIds(t *testing.T) {
 }
 
 func TestCollectBatchIds(t *testing.T) {
-	c := NewCollector("")
+	c := NewCollector()
 
 	batchIds, err := c.CollectBatchIds([]cloudevents.Event{newMockTestFinishedEvent(), newMockTestStartedEvent()})
 	assert.NilError(t, err)
@@ -138,7 +109,7 @@ func TestCollectBatchIds(t *testing.T) {
 }
 
 func TestCollectEarliestTime(t *testing.T) {
-	collector := NewCollector("")
+	collector := NewCollector()
 
 	a := cloudevents.NewEvent()
 	timestampA, _ := time.Parse(time.RFC3339, "2022-04-07T12:04:28Z")

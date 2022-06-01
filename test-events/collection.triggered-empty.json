@@ -1,0 +1,23 @@
+{
+  "specversion": "1.0",
+  "id": "ab67c2d8-9a1e-4e4e-8658-bb29851b0fab",
+  "source": "shipyard-controller",
+  "type": "sh.keptn.event.collection.triggered",
+  "datacontenttype": "application/json",
+  "time": "2022-04-07T12:05:28Z",
+  "data": {
+    "message": "",
+    "project": "simplenode-gitlab",
+    "result": "",
+    "service": "simplenodeservice",
+    "stage": "staging",
+    "status": "",
+    "synthetic": null,
+    "labels": {
+      "buildId": "shall-not-be-overwritten"
+    }
+  },
+  "triggeredid": "",
+  "shkeptnspecversion": "0.2.4",
+  "shkeptncontext": "0dc1538a-2550-49b5-8319-30d57a83519f"
+}

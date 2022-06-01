@@ -16,15 +16,14 @@ type Collector struct {
 	dataStoreBaseUrl string
 	dataStorePath    string
 	keptnApiToken    string
-	keptnContext     string
 	httpClient       *http.Client
 }
 
 type CollectorIface interface {
-	GetEventsOfType(eventType string) ([]cloudevents.Event, error)
-	GetTestStartedEvents() ([]cloudevents.Event, error)
-	GetTestFinishedEvents() ([]cloudevents.Event, error)
-	GetEvents() ([]cloudevents.Event, error)
+	GetEventsOfType(eventType string, keptnContext string) ([]cloudevents.Event, error)
+	// GetTestStartedEvents() ([]cloudevents.Event, error)
+	// GetTestFinishedEvents() ([]cloudevents.Event, error)
+	GetEvents(keptnContext string) ([]cloudevents.Event, error)
 	ParseEventsOfType(events []cloudevents.Event, filterType string) []cloudevents.Event
 	MustParseEventsOfType(events []cloudevents.Event, filterType string) ([]cloudevents.Event, error)
 	CollectExecutionIds(events []cloudevents.Event) ([]string, error)
@@ -47,7 +46,7 @@ type SyntheticTestFinishedEventData struct {
 	Stage   string `json:"stage"`
 }
 
-func (c Collector) GetEventsOfType(eventType string) ([]cloudevents.Event, error) {
+func (c Collector) GetEventsOfType(eventType string, keptnContext string) ([]cloudevents.Event, error) {
 	u, err := url.Parse(c.dataStoreBaseUrl)
 	if err != nil {
 		return []cloudevents.Event{}, err
@@ -55,7 +54,7 @@ func (c Collector) GetEventsOfType(eventType string) ([]cloudevents.Event, error
 
 	u.Path = c.dataStorePath
 	query := u.Query()
-	query.Add("keptnContext", c.keptnContext)
+	query.Add("keptnContext", keptnContext)
 
 	if eventType != "" {
 		query.Add("type", eventType)
@@ -84,23 +83,15 @@ func (c Collector) GetEventsOfType(eventType string) ([]cloudevents.Event, error
 	return responseBody.Events, nil
 }
 
-func (c Collector) GetTestStartedEvents() ([]cloudevents.Event, error) {
-	return c.GetEventsOfType("sh.keptn.event.test.started")
-}
-
-func (c Collector) GetTestFinishedEvents() ([]cloudevents.Event, error) {
-	return c.GetEventsOfType("sh.keptn.event.test.finished")
-}
-
-func (c Collector) GetEvents() ([]cloudevents.Event, error) {
-	return c.GetEventsOfType("")
+func (c Collector) GetEvents(keptnContext string) ([]cloudevents.Event, error) {
+	return c.GetEventsOfType("", keptnContext)
 }
 
 func (c Collector) ParseEventsOfType(events []cloudevents.Event, filterType string) []cloudevents.Event {
 	eventsOfType := []cloudevents.Event{}
 
 	for _, event := range events {
-		if event.Type() == filterType {
+		if filterType == "" || filterType == event.Type() {
 			eventsOfType = append(eventsOfType, event)
 		}
 	}
@@ -188,7 +179,7 @@ func (c Collector) CollectLatestTime(events []cloudevents.Event) (time.Time, err
 	return latestTime, nil
 }
 
-func NewCollector(keptnContext string) CollectorIface {
+func NewCollector() CollectorIface {
 	dataStoreServiceHost := os.Getenv("MONGODB_DATASTORE_SERVICE_HOST")
 	dataStoreServicePort := os.Getenv("MONGODB_DATASTORE_SERVICE_PORT")
 
@@ -211,7 +202,6 @@ func NewCollector(keptnContext string) CollectorIface {
 		dataStoreBaseUrl,
 		dataStorePath,
 		keptnApiToken,
-		keptnContext,
 		httpClient,
 	}
 }

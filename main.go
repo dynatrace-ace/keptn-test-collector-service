@@ -122,18 +122,14 @@ func processKeptnCloudEvent(ctx context.Context, event cloudevents.Event) error 
 	case keptnv2.GetTriggeredEventType("collection"):
 		log.Printf("Processing collection.triggered Event")
 
-		eventData := &eventHandler.CollectionEventData{}
-		parseKeptnCloudEventPayload(event, eventData)
+		collectorIface := collector.NewCollector()
 
-		syntheticTestContext := eventData.SyntheticTestContext
-		if syntheticTestContext == "" {
-			log.Println("Failed to parse synthetic test context, aborting...")
-			return fmt.Errorf("failed to parse synthetic test context")
+		eventDataHandlerIface, err := eventHandler.NewEventDataHandler(event)
+		if err != nil {
+			return err
 		}
 
-		c := collector.NewCollector(syntheticTestContext)
-
-		return eventHandler.CollectionCloudEventHandler(myKeptn, event, eventData, ServiceName, c)
+		return eventHandler.CollectionCloudEventHandler(myKeptn, event, ServiceName, collectorIface, eventDataHandlerIface)
 	}
 
 	// Unknown Event -> Throw Error!
