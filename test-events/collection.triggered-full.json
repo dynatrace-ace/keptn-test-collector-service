@@ -13,9 +13,16 @@
     "stage": "staging",
     "status": "",
     "synthetic": null,
-    "syntheticTestContext": "007afb94-4dff-4d34-a0bf-62ad000b6476",
     "labels": {
       "buildId": "shall-not-be-overwritten"
+    },
+    "collection": {
+      "evaluationStartContext": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "evaluationStartEventType": "mock.collection.start.event",
+      "evaluationEndContext": "zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz",
+      "evaluationEndEventType": "mock.collection.end.event",
+      "syntheticTestFinishedContext": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "syntheticTestFinishedEventType": "mock.synthetic.finished.event"
     }
   },
   "triggeredid": "",

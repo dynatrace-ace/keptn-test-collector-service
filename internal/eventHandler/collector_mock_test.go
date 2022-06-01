@@ -96,63 +96,33 @@ func (mr *MockCollectorIfaceMockRecorder) CollectLatestTime(events interface{}) 
 }
 
 // GetEvents mocks base method.
-func (m *MockCollectorIface) GetEvents() ([]v2.Event, error) {
+func (m *MockCollectorIface) GetEvents(keptnContext string) ([]v2.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEvents")
+	ret := m.ctrl.Call(m, "GetEvents", keptnContext)
 	ret0, _ := ret[0].([]v2.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetEvents indicates an expected call of GetEvents.
-func (mr *MockCollectorIfaceMockRecorder) GetEvents() *gomock.Call {
+func (mr *MockCollectorIfaceMockRecorder) GetEvents(keptnContext interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvents", reflect.TypeOf((*MockCollectorIface)(nil).GetEvents))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvents", reflect.TypeOf((*MockCollectorIface)(nil).GetEvents), keptnContext)
 }
 
 // GetEventsOfType mocks base method.
-func (m *MockCollectorIface) GetEventsOfType(eventType string) ([]v2.Event, error) {
+func (m *MockCollectorIface) GetEventsOfType(eventType, keptnContext string) ([]v2.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEventsOfType", eventType)
+	ret := m.ctrl.Call(m, "GetEventsOfType", eventType, keptnContext)
 	ret0, _ := ret[0].([]v2.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetEventsOfType indicates an expected call of GetEventsOfType.
-func (mr *MockCollectorIfaceMockRecorder) GetEventsOfType(eventType interface{}) *gomock.Call {
+func (mr *MockCollectorIfaceMockRecorder) GetEventsOfType(eventType, keptnContext interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEventsOfType", reflect.TypeOf((*MockCollectorIface)(nil).GetEventsOfType), eventType)
-}
-
-// GetTestFinishedEvents mocks base method.
-func (m *MockCollectorIface) GetTestFinishedEvents() ([]v2.Event, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTestFinishedEvents")
-	ret0, _ := ret[0].([]v2.Event)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetTestFinishedEvents indicates an expected call of GetTestFinishedEvents.
-func (mr *MockCollectorIfaceMockRecorder) GetTestFinishedEvents() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTestFinishedEvents", reflect.TypeOf((*MockCollectorIface)(nil).GetTestFinishedEvents))
-}
-
-// GetTestStartedEvents mocks base method.
-func (m *MockCollectorIface) GetTestStartedEvents() ([]v2.Event, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTestStartedEvents")
-	ret0, _ := ret[0].([]v2.Event)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetTestStartedEvents indicates an expected call of GetTestStartedEvents.
-func (mr *MockCollectorIfaceMockRecorder) GetTestStartedEvents() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTestStartedEvents", reflect.TypeOf((*MockCollectorIface)(nil).GetTestStartedEvents))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEventsOfType", reflect.TypeOf((*MockCollectorIface)(nil).GetEventsOfType), eventType, keptnContext)
 }
 
 // MustParseEventsOfType mocks base method.

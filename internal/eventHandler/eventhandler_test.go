@@ -9,7 +9,7 @@ import (
 	"testing"
 	time "time"
 
-	"github.com/golang/mock/gomock"
+	gomock "github.com/golang/mock/gomock"
 	"github.com/keptn/go-utils/pkg/lib/v0_2_0/fake"
 	"gotest.tools/assert"
 
@@ -51,29 +51,56 @@ func TestSyntheticCloudEventHandler(t *testing.T) {
 
 	m := NewMockCollectorIface(ctrl)
 
-	myKeptn, incomingEvent, err := initializeTestObjects("../../test-events/collection.triggered.json")
+	myKeptn, incomingEvent, err := initializeTestObjects("../../test-events/collection.triggered-full.json")
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	specificEvent := &CollectionEventData{}
-	err = incomingEvent.DataAs(specificEvent)
+	eventDataHandlerIface, err := NewEventDataHandler(*incomingEvent)
 	if err != nil {
 		t.Errorf("Error getting keptn event data")
 	}
 
-	m.EXPECT().GetEvents().Return([]cloudevents.Event{}, nil)
+	mockStartedEvent := cloudevents.Event{
+		Context: &cloudevents.EventContextV03{},
+	}
+	mockStartedEvent.SetType("mock.collection.start.event")
+
+	mockFinishedEvent := cloudevents.Event{
+		Context: &cloudevents.EventContextV03{},
+	}
+	mockFinishedEvent.SetType("mock.collection.end.event")
+
+	mockSyntheticTestFinishedEvent := cloudevents.Event{
+		Context: &cloudevents.EventContextV03{},
+	}
+	mockSyntheticTestFinishedEvent.SetType("mock.synthetic.finished.event")
+
+	m.EXPECT().GetEvents(gomock.Any()).Return([]cloudevents.Event{
+		mockStartedEvent,
+		mockSyntheticTestFinishedEvent,
+		mockFinishedEvent,
+	}, nil).AnyTimes()
 	m.EXPECT().CollectExecutionIds(gomock.Any()).Return([]string{"executionId", "executionId", "executionId"}, nil)
 	m.EXPECT().CollectBatchIds(gomock.Any()).Return([]string{"batchId"}, nil)
-	m.EXPECT().ParseEventsOfType(gomock.Any(), "sh.keptn.event.test.started").Return([]cloudevents.Event{})
+	m.EXPECT().ParseEventsOfType(gomock.Any(), "mock.collection.start.event").Return([]cloudevents.Event{
+		mockStartedEvent,
+	})
+	m.EXPECT().ParseEventsOfType(gomock.Any(), "mock.collection.end.event").Return([]cloudevents.Event{
+		mockFinishedEvent,
+	})
+	m.EXPECT().ParseEventsOfType(gomock.Any(), "mock.synthetic.finished.event").Return([]cloudevents.Event{
+		mockSyntheticTestFinishedEvent,
+	})
 
 	timestampA, _ := time.Parse(time.RFC3339, "2022-04-07T12:04:28Z")
 	m.EXPECT().CollectEarliestTime(gomock.Any()).Return(timestampA, nil)
 
-	timestampB, _ := time.Parse(time.RFC3339, "2022-04-07T12:05:28Z")
+	timestampB, _ := time.Parse(time.RFC3339, "2022-04-07T12:05:29Z")
+	m.EXPECT().CollectLatestTime(gomock.Any()).Return(timestampB, nil)
 
-	err = CollectionCloudEventHandler(myKeptn, *incomingEvent, specificEvent, "serviceName", m)
+	err = CollectionCloudEventHandler(myKeptn, *incomingEvent, "serviceName", m, eventDataHandlerIface)
 	assert.NilError(t, err)
 
 	assert.Equal(t, len(myKeptn.EventSender.(*fake.EventSender).SentEvents), 2)
