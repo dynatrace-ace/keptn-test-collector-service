@@ -28,8 +28,8 @@ type CollectorIface interface {
 	MustParseEventsOfType(events []cloudevents.Event, filterType string) ([]cloudevents.Event, error)
 	CollectExecutionIds(events []cloudevents.Event) ([]string, error)
 	CollectBatchIds(events []cloudevents.Event) ([]string, error)
-	CollectEarliestTime(events []cloudevents.Event) (time.Time, error)
-	CollectLatestTime(events []cloudevents.Event) (time.Time, error)
+	CollectEarliestTime(events []cloudevents.Event, isFloored bool) (time.Time, error)
+	CollectLatestTime(events []cloudevents.Event, isCeiled bool) (time.Time, error)
 }
 
 type CollectedEvents struct {
@@ -143,7 +143,21 @@ func (c Collector) CollectBatchIds(events []cloudevents.Event) ([]string, error)
 	return batchIds, nil
 }
 
-func (c Collector) CollectEarliestTime(events []cloudevents.Event) (time.Time, error) {
+func floorSeconds(timestamp time.Time) time.Time {
+	delta := -timestamp.Second()
+	floored := timestamp.Add(time.Second * time.Duration(delta))
+
+	return floored
+}
+
+func ceilSeconds(timestamp time.Time) time.Time {
+	delta := 60 - timestamp.Second()
+	ceiled := timestamp.Add(time.Second * time.Duration(delta))
+
+	return ceiled
+}
+
+func (c Collector) CollectEarliestTime(events []cloudevents.Event, isFloored bool) (time.Time, error) {
 	earliestTime := time.Time{}
 
 	for _, event := range events {
@@ -155,13 +169,18 @@ func (c Collector) CollectEarliestTime(events []cloudevents.Event) (time.Time, e
 	}
 
 	if earliestTime.Equal(time.Time{}) {
-		return earliestTime, fmt.Errorf("no timestamps found")
+		return time.Time{}, fmt.Errorf("no timestamps found")
 	}
 
-	return earliestTime, nil
+	if isFloored {
+		floored := floorSeconds(earliestTime)
+		return floored, nil
+	} else {
+		return earliestTime, nil
+	}
 }
 
-func (c Collector) CollectLatestTime(events []cloudevents.Event) (time.Time, error) {
+func (c Collector) CollectLatestTime(events []cloudevents.Event, isCeiled bool) (time.Time, error) {
 	latestTime := time.Time{}
 
 	for _, event := range events {
@@ -173,10 +192,15 @@ func (c Collector) CollectLatestTime(events []cloudevents.Event) (time.Time, err
 	}
 
 	if latestTime.Equal(time.Time{}) {
-		return latestTime, fmt.Errorf("no timestamps found")
+		return time.Time{}, fmt.Errorf("no timestamps found")
 	}
 
-	return latestTime, nil
+	if isCeiled {
+		floored := ceilSeconds(latestTime)
+		return floored, nil
+	} else {
+		return latestTime, nil
+	}
 }
 
 func NewCollector() CollectorIface {

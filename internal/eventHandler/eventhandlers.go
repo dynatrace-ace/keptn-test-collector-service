@@ -136,7 +136,7 @@ func CollectionCloudEventHandler(
 	// Evaluation start is earliest event timestamp
 	evaluationStartEvents := collectorIface.ParseEventsOfType(collectionStartEventsInContext, collectionStartEventFilter)
 
-	evaluationStart, err := collectorIface.CollectEarliestTime(evaluationStartEvents)
+	evaluationStart, err := collectorIface.CollectEarliestTime(evaluationStartEvents, true)
 	if err != nil {
 		errMsg := fmt.Errorf("ABORTING. Failed to collect start timestamps for context %s, filtered by \"%s\": %s", collectionStartContext, collectionStartEventFilter, err.Error())
 		log.Println(errMsg.Error())
@@ -145,7 +145,7 @@ func CollectionCloudEventHandler(
 
 	// Evaluation end is latest event timestamp
 	evaluationEndEvents := collectorIface.ParseEventsOfType(collectionEndEventsInContext, collectionEndEventFilter)
-	evaluationEnd, err := collectorIface.CollectLatestTime(evaluationEndEvents)
+	evaluationEnd, err := collectorIface.CollectLatestTime(evaluationEndEvents, true)
 	if err != nil {
 		errMsg := fmt.Errorf("ABORTING. Failed to collect end timestamps for context %s, filtered by \"%s\": %s", collectionEndContext, collectionEndEventFilter, err.Error())
 		log.Println(errMsg.Error())

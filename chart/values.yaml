@@ -3,7 +3,7 @@ keptnApiTokenSecret: keptn-api-token
 image:
   repository: "dynatraceace/keptn-test-collector-service" # Container Image Name
   pullPolicy: IfNotPresent                   # Kubernetes Image Pull Policy
-  tag: "0.1.0"                               # Container Tag
+  tag: "0.1.1"                               # Container Tag
 service:
   enabled: true                              # Creates a Kubernetes Service for the keptn-service-template-go
 
@@ -15,7 +15,7 @@ distributor:
   image:
     repository: docker.io/keptn/distributor  # Container Image Name
     pullPolicy: IfNotPresent                 # Kubernetes Image Pull Policy
-    tag: "0.14.1"                            # Container Tag
+    tag: "0.14.2"                            # Container Tag
   config:
     queueGroup:
       enabled: true                          # Enable connection via Nats queue group to support exactly-once message processing

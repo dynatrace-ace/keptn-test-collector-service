@@ -51,18 +51,18 @@ func (mr *MockCollectorIfaceMockRecorder) CollectBatchIds(events interface{}) *g
 }
 
 // CollectEarliestTime mocks base method.
-func (m *MockCollectorIface) CollectEarliestTime(events []v2.Event) (time.Time, error) {
+func (m *MockCollectorIface) CollectEarliestTime(events []v2.Event, isFloored bool) (time.Time, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CollectEarliestTime", events)
+	ret := m.ctrl.Call(m, "CollectEarliestTime", events, isFloored)
 	ret0, _ := ret[0].(time.Time)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CollectEarliestTime indicates an expected call of CollectEarliestTime.
-func (mr *MockCollectorIfaceMockRecorder) CollectEarliestTime(events interface{}) *gomock.Call {
+func (mr *MockCollectorIfaceMockRecorder) CollectEarliestTime(events, isFloored interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CollectEarliestTime", reflect.TypeOf((*MockCollectorIface)(nil).CollectEarliestTime), events)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CollectEarliestTime", reflect.TypeOf((*MockCollectorIface)(nil).CollectEarliestTime), events, isFloored)
 }
 
 // CollectExecutionIds mocks base method.
@@ -81,18 +81,18 @@ func (mr *MockCollectorIfaceMockRecorder) CollectExecutionIds(events interface{}
 }
 
 // CollectLatestTime mocks base method.
-func (m *MockCollectorIface) CollectLatestTime(events []v2.Event) (time.Time, error) {
+func (m *MockCollectorIface) CollectLatestTime(events []v2.Event, isCeiled bool) (time.Time, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CollectLatestTime", events)
+	ret := m.ctrl.Call(m, "CollectLatestTime", events, isCeiled)
 	ret0, _ := ret[0].(time.Time)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CollectLatestTime indicates an expected call of CollectLatestTime.
-func (mr *MockCollectorIfaceMockRecorder) CollectLatestTime(events interface{}) *gomock.Call {
+func (mr *MockCollectorIfaceMockRecorder) CollectLatestTime(events, isCeiled interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CollectLatestTime", reflect.TypeOf((*MockCollectorIface)(nil).CollectLatestTime), events)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CollectLatestTime", reflect.TypeOf((*MockCollectorIface)(nil).CollectLatestTime), events, isCeiled)
 }
 
 // GetEvents mocks base method.

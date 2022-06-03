@@ -95,10 +95,10 @@ func TestSyntheticCloudEventHandler(t *testing.T) {
 	})
 
 	timestampA, _ := time.Parse(time.RFC3339, "2022-04-07T12:04:28Z")
-	m.EXPECT().CollectEarliestTime(gomock.Any()).Return(timestampA, nil)
+	m.EXPECT().CollectEarliestTime(gomock.Any(), gomock.Any()).Return(timestampA, nil)
 
 	timestampB, _ := time.Parse(time.RFC3339, "2022-04-07T12:05:29Z")
-	m.EXPECT().CollectLatestTime(gomock.Any()).Return(timestampB, nil)
+	m.EXPECT().CollectLatestTime(gomock.Any(), gomock.Any()).Return(timestampB, nil)
 
 	err = CollectionCloudEventHandler(myKeptn, *incomingEvent, "serviceName", m, eventDataHandlerIface)
 	assert.NilError(t, err)
@@ -112,4 +112,17 @@ func TestSyntheticCloudEventHandler(t *testing.T) {
 
 	assert.Equal(t, finishedEventData.Evaluation.Start, timestampA.Format(time.RFC3339))
 	assert.Equal(t, finishedEventData.Evaluation.End, timestampB.Format(time.RFC3339))
+}
+
+func TestRound(t *testing.T) {
+
+	timestamp, _ := time.Parse(time.RFC3339, "2022-04-07T12:04:28Z")
+	seconds := timestamp.Second()
+
+	assert.Equal(t, 28, seconds)
+
+	rounded := timestamp.Add(-time.Second * time.Duration(seconds))
+	formatted := rounded.Format(time.RFC3339)
+
+	assert.Equal(t, "2022-04-07T12:04:00Z", formatted)
 }

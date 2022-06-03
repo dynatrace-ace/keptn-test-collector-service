@@ -113,6 +113,7 @@ func TestCollectEarliestTime(t *testing.T) {
 
 	a := cloudevents.NewEvent()
 	timestampA, _ := time.Parse(time.RFC3339, "2022-04-07T12:04:28Z")
+	timestampAFloored, _ := time.Parse(time.RFC3339, "2022-04-07T12:04:00Z")
 	a.SetTime(timestampA)
 
 	b := cloudevents.NewEvent()
@@ -121,13 +122,14 @@ func TestCollectEarliestTime(t *testing.T) {
 
 	c := cloudevents.NewEvent()
 	timestampC, _ := time.Parse(time.RFC3339, "2022-04-07T12:06:28Z")
+	timestampCCeiled, _ := time.Parse(time.RFC3339, "2022-04-07T12:07:00Z")
 	c.SetTime(timestampC)
 
-	earliestTimestamp, err := collector.CollectEarliestTime([]cloudevents.Event{b, a, c})
+	earliestTimestamp, err := collector.CollectEarliestTime([]cloudevents.Event{b, a, c}, true)
 	assert.NilError(t, err)
-	assert.Equal(t, timestampA, earliestTimestamp)
+	assert.Equal(t, timestampAFloored, earliestTimestamp)
 
-	latestTimestamp, err := collector.CollectLatestTime([]cloudevents.Event{b, a, c})
+	latestTimestamp, err := collector.CollectLatestTime([]cloudevents.Event{b, a, c}, true)
 	assert.NilError(t, err)
-	assert.Equal(t, timestampC, latestTimestamp)
+	assert.Equal(t, timestampCCeiled, latestTimestamp)
 }
