@@ -105,31 +105,26 @@ func CollectionCloudEventHandler(
 		}
 	}
 
-	isSyntheticTestFinishedContextProvided := collectionEventDataIface.IsSyntheticTestFinishedContextProvided()
-	var syntheticTestFinishedContext string
+	syntheticTestFinishedContext, err := collectionEventDataIface.GetSyntheticTestFinishedContext()
+	if err != nil {
+		log.Println(err.Error())
+		return sendTaskFail(myKeptn, eventData, serviceName, err)
+	}
 
-	if isSyntheticTestFinishedContextProvided {
-		syntheticTestFinishedContext, err = collectionEventDataIface.GetSyntheticTestFinishedContext()
+	syntheticTestFinishedEventFilter = collectionEventDataIface.GetSyntheticTestFinishedEventFilter()
+
+	isSameContextAsStart = syntheticTestFinishedContext == collectionStartContext
+	isSameContextAsEnd := syntheticTestFinishedContext == collectionEndContext
+
+	if isSameContextAsStart {
+		syntheticTestFinishedEventsInContext = collectionStartEventsInContext
+	} else if isSameContextAsEnd {
+		syntheticTestFinishedEventsInContext = collectionEndEventsInContext
+	} else {
+		syntheticTestFinishedEventsInContext, err = collectorIface.GetEvents(syntheticTestFinishedContext)
 		if err != nil {
 			log.Println(err.Error())
 			return sendTaskFail(myKeptn, eventData, serviceName, err)
-		}
-
-		syntheticTestFinishedEventFilter = collectionEventDataIface.GetSyntheticTestFinishedEventFilter()
-
-		isSameContextAsStart = syntheticTestFinishedContext == collectionStartContext
-		isSameContextAsEnd := syntheticTestFinishedContext == collectionEndContext
-
-		if isSameContextAsStart {
-			syntheticTestFinishedEventsInContext = collectionStartEventsInContext
-		} else if isSameContextAsEnd {
-			syntheticTestFinishedEventsInContext = collectionEndEventsInContext
-		} else {
-			syntheticTestFinishedEventsInContext, err = collectorIface.GetEvents(syntheticTestFinishedContext)
-			if err != nil {
-				log.Println(err.Error())
-				return sendTaskFail(myKeptn, eventData, serviceName, err)
-			}
 		}
 	}
 
@@ -152,9 +147,11 @@ func CollectionCloudEventHandler(
 		return sendTaskFail(myKeptn, eventData, serviceName, errMsg)
 	}
 
-	if isSyntheticTestFinishedContextProvided {
-		syntheticTestFinishedEvents := collectorIface.ParseEventsOfType(syntheticTestFinishedEventsInContext, syntheticTestFinishedEventFilter)
+	syntheticTestFinishedEvents := collectorIface.ParseEventsOfType(syntheticTestFinishedEventsInContext, syntheticTestFinishedEventFilter)
 
+	isSyntheticTestFinishedEventFound := len(syntheticTestFinishedEvents) > 0
+
+	if isSyntheticTestFinishedEventFound {
 		executionIds, err := collectorIface.CollectExecutionIds(syntheticTestFinishedEvents)
 		if err != nil {
 			errMsg := fmt.Errorf("ABORTING. Failed to collect execution ids for context %s, filtered by \"%s\": %s", syntheticTestFinishedContext, syntheticTestFinishedEventFilter, err.Error())

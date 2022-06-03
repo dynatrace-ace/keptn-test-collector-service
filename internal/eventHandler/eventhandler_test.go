@@ -112,17 +112,45 @@ func TestSyntheticCloudEventHandler(t *testing.T) {
 
 	assert.Equal(t, finishedEventData.Evaluation.Start, timestampA.Format(time.RFC3339))
 	assert.Equal(t, finishedEventData.Evaluation.End, timestampB.Format(time.RFC3339))
-}
 
-func TestRound(t *testing.T) {
+	// Test empty event
+	m = NewMockCollectorIface(ctrl)
 
-	timestamp, _ := time.Parse(time.RFC3339, "2022-04-07T12:04:28Z")
-	seconds := timestamp.Second()
+	myKeptn, incomingEvent, err = initializeTestObjects("../../test-events/collection.triggered-empty.json")
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
-	assert.Equal(t, 28, seconds)
+	eventDataHandlerIface, err = NewEventDataHandler(*incomingEvent)
+	if err != nil {
+		t.Errorf("Error getting keptn event data")
+	}
 
-	rounded := timestamp.Add(-time.Second * time.Duration(seconds))
-	formatted := rounded.Format(time.RFC3339)
+	m.EXPECT().GetEvents(gomock.Any()).Return([]cloudevents.Event{
+		mockStartedEvent,
+		mockSyntheticTestFinishedEvent,
+		mockFinishedEvent,
+	}, nil).AnyTimes()
 
-	assert.Equal(t, "2022-04-07T12:04:00Z", formatted)
+	m.EXPECT().ParseEventsOfType(gomock.Any(), "").Return([]cloudevents.Event{
+		mockStartedEvent,
+		mockFinishedEvent,
+	}).Times(2)
+
+	m.EXPECT().ParseEventsOfType(gomock.Any(), "sh.keptn.event.test.finished").Return([]cloudevents.Event{
+		mockSyntheticTestFinishedEvent,
+	}).Times(1)
+
+	timestampA, _ = time.Parse(time.RFC3339, "2022-04-07T12:04:28Z")
+	m.EXPECT().CollectEarliestTime(gomock.Any(), gomock.Any()).Return(timestampA, nil)
+
+	timestampB, _ = time.Parse(time.RFC3339, "2022-04-07T12:05:29Z")
+	m.EXPECT().CollectLatestTime(gomock.Any(), gomock.Any()).Return(timestampB, nil)
+
+	m.EXPECT().CollectExecutionIds(gomock.Any()).Return([]string{"executionId", "executionId", "executionId"}, nil)
+	m.EXPECT().CollectBatchIds(gomock.Any()).Return([]string{"batchId"}, nil)
+
+	err = CollectionCloudEventHandler(myKeptn, *incomingEvent, "serviceName", m, eventDataHandlerIface)
+	assert.NilError(t, err)
 }

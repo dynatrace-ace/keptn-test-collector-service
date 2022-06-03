@@ -37,7 +37,6 @@ type CollectionEventDataIface interface {
 	GetEvaluationStartEventFilter() string
 	GetEvaluationEndContext() (string, error)
 	GetEvaluationEndEventFilter() string
-	IsSyntheticTestFinishedContextProvided() bool
 	GetSyntheticTestFinishedContext() (string, error)
 	GetSyntheticTestFinishedEventFilter() string
 }
@@ -125,19 +124,27 @@ func (collectionEventData *CollectionEventData) GetEvaluationEndEventFilter() st
 }
 
 /**
- * Parses synthetic test finished context and returns whether value is set or not.
- */
-func (collectionEventData *CollectionEventData) IsSyntheticTestFinishedContextProvided() bool {
-	isSyntheticTestFinishedContextProvided := collectionEventData.Collection.SyntheticTestFinishedContext != ""
-	return isSyntheticTestFinishedContextProvided
-}
-
-/**
  * Parses synthetic test finished context. If none was provided in event payload,
  * empty context will be returned.
  */
 func (collectionEventData *CollectionEventData) GetSyntheticTestFinishedContext() (string, error) {
-	return collectionEventData.Collection.SyntheticTestFinishedContext, nil
+	isProvidedByIncomingEvent := collectionEventData.Collection.SyntheticTestFinishedContext != ""
+
+	if isProvidedByIncomingEvent {
+		return collectionEventData.Collection.SyntheticTestFinishedContext, nil
+	} else {
+		shKeptnContextIface, err := collectionEventData.eventContext.GetExtension("shkeptncontext")
+		if err != nil {
+			return "", err
+		}
+
+		shKeptnContext, ok := shKeptnContextIface.(string)
+		if !ok {
+			return "", fmt.Errorf("error parsing Keptn context")
+		}
+
+		return shKeptnContext, nil
+	}
 }
 
 /**
