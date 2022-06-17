@@ -1,151 +1,153 @@
-# README
+# Keptn Test Collector Service
 
-**BEFORE YOU START**, please be aware that there are more ways to integrate with your service that don't require creating a service from this template, see https://keptn.sh/docs/0.10.x/integrations/how_integrate/ for more details.
+### This project is based in the [keptn-service-template-go](https://github.com/keptn-sandbox/keptn-service-template-go)
 
-Examples:
+## Overview
 
-* Webhooks: https://keptn.sh/docs/0.10.x/integrations/webhooks/
-* Job-Executor-Service: https://github.com/keptn-sandbox/job-executor-service
+Keptn Quality Gate evaluations require test start and end timestamps (or a timespan).
 
----
+However, due to the asynchronous nature of event driven architectures there is not always a definite answer to when an event actually happened. When test capabilities are furthermore distributed across multiple services timestamps become even more blurry.
 
-This is a Keptn Service Template written in GoLang. Follow the instructions below for writing your own Keptn integration.
-
-Quick start:
-
-1. In case you want to contribute your service to keptn-sandbox or keptn-contrib, make sure you have read and understood the [Contributing Guidelines](https://github.com/keptn-sandbox/contributing).
-1. Click [Use this template](https://github.com/keptn-sandbox/keptn-service-template-go/generate) on top of the repository, or download the repo as a zip-file, extract it into a new folder named after the service you want to create (e.g., simple-service) 
-1. Run GitHub workflow `One-time repository initialization` to tailor deployment files and go modules to the new instance of the keptn service template. This will create a Pull Request containing the necessary changes, review it, adjust if necessary and merge it.
-1. Figure out whether your Kubernetes Deployment requires [any RBAC rules or a different service-account](https://github.com/keptn-sandbox/contributing#rbac-guidelines), and adapt [chart/templates/serviceaccount.yaml](chart/templates/serviceaccount.yaml) accordingly for the roles.
-1. Last but not least: Remove this intro within the README file and make sure the README file properly states what this repository is about
-
----
-
-# keptn-service-template-go
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/keptn-sandbox/keptn-service-template-go)
-[![Go Report Card](https://goreportcard.com/badge/github.com/keptn-sandbox/keptn-service-template-go)](https://goreportcard.com/report/github.com/keptn-sandbox/keptn-service-template-go)
-
-This implements a keptn-service-template-go for Keptn. If you want to learn more about Keptn visit us on [keptn.sh](https://keptn.sh)
-
-## Compatibility Matrix
-
-*Please fill in your versions accordingly*
-
-| Keptn Version    | [Keptn-Service-Template-Go Docker Image](https://hub.docker.com/r/keptn-sandbox/keptn-service-template-go/tags) |
-|:----------------:|:----------------------------------------:|
-|       0.6.1      | keptn-sandbox/keptn-service-template-go:0.1.0 |
-|       0.7.1      | keptn-sandbox/keptn-service-template-go:0.1.1 |
-|       0.7.2      | keptn-sandbox/keptn-service-template-go:0.1.2 |
+The Test Collector Service is meant to be put in front of an evaluation task as part of a Keptn sequence. It's responsibility is collecting timestamps, synthetic test metadata, etc. from different Keptn contexts. Upon collection,  the Collector Service publishes a *sh.keptn.event.collection.finished* event enriched with such metadata.
 
 ## Installation
 
-The *keptn-service-template-go* can be installed as a part of [Keptn's uniform](https://keptn.sh).
+The service can be installed by cloning this repo and running:
 
-### Deploy in your Kubernetes cluster
-
-To deploy the current version of the *keptn-service-template-go* in your Keptn Kubernetes cluster use the [`helm chart`](chart/Chart.yaml) file,
-for example:
-
-```console
-helm install -n keptn keptn-service-template-go chart/
+```
+helm upgrade --install -n keptn keptn-test-collector-service chart/
 ```
 
-This should install the `keptn-service-template-go` together with a Keptn `distributor` into the `keptn` namespace, which you can verify using
+## Project setup
 
-```console
-kubectl -n keptn get deployment keptn-service-template-go -o wide
-kubectl -n keptn get pods -l run=keptn-service-template-go
+Example shipyard.yaml:
+```
+---
+apiVersion: "spec.keptn.sh/0.2.0"
+kind: "Shipyard"
+metadata:
+  name: "shipyard-simplenode"
+spec:
+  stages:
+    - name: "dev"
+      sequences:
+      - name: "test"
+        tasks:
+        - name: "test"
+      - name: "evaluation"
+        tasks:
+        - name: "collection"
+        - name: "evaluation"
+    - name: "prod"
+      ...
 ```
 
-### Up- or Downgrading
+## Triggering a collection
 
-Adapt and use the following command in case you want to up- or downgrade your installed version (specified by the `$VERSION` placeholder):
+A collection can be triggered by publishing an event of type `sh.keptn.event.collection.triggered`. If no additional info is provided, the earliest and latest events in the current Keptn are parsed for test start and respectively end timestamps.
 
-```console
-helm upgrade -n keptn --set image.tag=$VERSION keptn-service-template-go chart/
+Empty event:
+```
+{
+  "specversion": "1.0",
+  "source": "<Source>",
+  "type": "sh.keptn.event.collection.triggered",
+  "datacontenttype": "application/json",
+  "data": {
+    "project": "<Keptn Project>",
+    "service": "<Keptn Service>",
+    "stage": "<Keptn Stage>",
+    "labels": {
+      "<Key>": "<Value>",
+      ...
+    },
+    "collection": {}
+  },
+  "shkeptnspecversion": "0.2.4"
+}
 ```
 
-### Uninstall
+The following options can be provided to apply filters:
 
-To delete a deployed *keptn-service-template-go*, use the file `deploy/*.yaml` files from this repository and delete the Kubernetes resources:
+|Attribute|Required|Default|Comment|
+|---|---|---|---|
+|evaluationStartContext|no|Current context|Keptn context evaluation start timestamp will be parsed from. If left empty, current context will be used.|
+|evaluationStartEventType|no|*|Keptn event type evaluation start timestamp will be parsed from. If left empty all events within a context will be considered.|
+|evaluationEndContext|no|Current context|Keptn context evaluation end timestamp will be parsed from. If left empty, current context will be used.|
+|evaluationEndEventType|no|*|Keptn event type evaluation end timestamp will be parsed from. If left empty all events within a context will be considered.|
+|syntheticTestFinishedContext|no|Current context|Keptn context synthetic execution details will be parsed from. If left empty all events within a context will be considered.|
+|syntheticTestFinishedEventType|no|sh.keptn.event.test.finished|Keptn event type synthetic execution details will be parsed from. If left empty all events within a context will be considered.|
 
-```console
-helm uninstall -n keptn keptn-service-template-go
+
+Full example:
+```
+{
+  "specversion": "1.0",
+  "source": "<Source>",
+  "type": "sh.keptn.event.collection.triggered",
+  "datacontenttype": "application/json",
+  "data": {
+    "project": "<Keptn Project>",
+    "service": "<Keptn Service>",
+    "stage": "<Keptn Stage>",
+    "labels": {
+      "<Key>": "<Value>",
+      ...
+    },
+    "collection": {
+      "evaluationStartContext": "<Test start context>",
+      "evaluationStartEventType": "<Test start event type>",
+      "evaluationEndContext": "<Keptn context of test start time>",
+      "evaluationEndEventType": "<Test end context>",
+      "syntheticTestFinishedContext": "<Synthetic test finished context>",
+      "syntheticTestFinishedEventType": "<Synthetic test finished event type>"
+    }
+  },
+  "shkeptnspecversion": "0.2.4"
+}
 ```
 
-## Development
+### A note on Synthetic test result collection
 
-Development can be conducted using any GoLang compatible IDE/editor (e.g., Jetbrains GoLand, VSCode with Go plugins).
+In addition to test related timestamps, the Keptn Test Collector Service also parses execution data from a synthetic test execution (more details can be found in the [Dynatrace Synthetic Service repo](https://github.com/dynatrace-ace/dynatrace-synthetic-service)).
 
-It is recommended to make use of branches as follows:
+Synthetic execution and batch ids are parsed and added as labels. A *sh.keptn.event.collection.finished* event would look similar to this:
 
-* `main`/`master` contains the latest potentially unstable version
-* `release-*` contains a stable version of the service (e.g., `release-0.1.0` contains version 0.1.0)
-* create a new branch for any changes that you are working on, e.g., `feature/my-cool-stuff` or `bug/overflow`
-* once ready, create a pull request from that branch back to the `main`/`master` branch
+```
+{
+  "data": {
+    "evaluation": {
+      "start": "<Test start timestamp>",
+      "end": "<Test end timestamp>"
+    },
+    "labels": {
+      "SYNTHETIC_BATCH_IDS": "<Bacth id>",
+      "SYNTHETIC_EXECUTION_IDS": "<Comma seperated list of execution ids>",
+      "ADDITIONAL_KEY": "<Additional labels provided in the trigger event are passed to the finished event>",
+      ...
+    },
+    "project": "<Keptn Project>",
+    "service": "<Keptn Service>",
+    "stage": "<Keptn Stage>",
+    "status": "succeeded"
+  },
+  "shkeptncontext": "<Current Keptn context>",
+  "shkeptnspecversion": "0.2.4",
+  "source": "keptn-test-collector-service",
+  "specversion": "1.0",
+  "type": "sh.keptn.event.collection.finished"
+}
+```
 
-When writing code, it is recommended to follow the coding style suggested by the [Golang community](https://github.com/golang/go/wiki/CodeReviewComments).
+Not only is a subsequent evaluation provided with accurate timestamps, but this information can also be used to implement SLIs/SLOs as part of a Quality Gate:
 
-### Where to start
+sli.yaml
+```
+---
+spec_version: '1.0'
+indicators:
+  e2e_page_load: "USQL;COLUMN_CHART;Page load;SELECT syntheticEvent, AVG(duration) FROM useraction WHERE usersession.internalUserId IN ($LABEL.SYNTHETIC_EXECUTION_IDS) GROUP BY syntheticEvent"
+  e2e_version: "USQL;COLUMN_CHART;Version;SELECT syntheticEvent, AVG(duration) FROM useraction WHERE usersession.internalUserId IN ($LABEL.SYNTHETIC_EXECUTION_IDS) GROUP BY syntheticEvent"
+  ...
 
-If you don't care about the details, your first entrypoint is [eventhandlers.go](eventhandlers.go). Within this file 
- you can add implementation for pre-defined Keptn Cloud events.
- 
-To better understand all variants of Keptn CloudEvents, please look at the [Keptn Spec](https://github.com/keptn/spec).
- 
-If you want to get more insights into processing those CloudEvents or even defining your own CloudEvents in code, please 
- look into [main.go](main.go) (specifically `processKeptnCloudEvent`), [chart/values.yaml](chart/values.yaml),
- consult the [Keptn docs](https://keptn.sh/docs/) as well as existing [Keptn Core](https://github.com/keptn/keptn) and
- [Keptn Contrib](https://github.com/keptn-contrib/) services.
-
-### Common tasks
-
-* Build the binary: `go build -ldflags '-linkmode=external' -v -o keptn-service-template-go`
-* Run tests: `go test -race -v ./...`
-* Build the docker image: `docker build . -t keptn-sandbox/keptn-service-template-go:dev` (Note: Ensure that you use the correct DockerHub account/organization)
-* Run the docker image locally: `docker run --rm -it -p 8080:8080 keptn-sandbox/keptn-service-template-go:dev`
-* Push the docker image to DockerHub: `docker push keptn-sandbox/keptn-service-template-go:dev` (Note: Ensure that you use the correct DockerHub account/organization)
-* Deploy the service using `kubectl`: `kubectl apply -f deploy/`
-* Delete/undeploy the service using `kubectl`: `kubectl delete -f deploy/`
-* Watch the deployment using `kubectl`: `kubectl -n keptn get deployment keptn-service-template-go -o wide`
-* Get logs using `kubectl`: `kubectl -n keptn logs deployment/keptn-service-template-go -f`
-* Watch the deployed pods using `kubectl`: `kubectl -n keptn get pods -l run=keptn-service-template-go`
-* Deploy the service using [Skaffold](https://skaffold.dev/): `skaffold run --default-repo=your-docker-registry --tail` (Note: Replace `your-docker-registry` with your container image registry (defaults to ghcr.io/keptn-sandbox/keptn-service-template-go); also make sure to adapt the image name in [skaffold.yaml](skaffold.yaml))
-
-
-### Testing Cloud Events
-
-We have dummy cloud-events in the form of [RFC 2616](https://ietf.org/rfc/rfc2616.txt) requests in the [test-events/](test-events/) directory. These can be easily executed using third party plugins such as the [Huachao Mao REST Client in VS Code](https://marketplace.visualstudio.com/items?itemName=humao.rest-client).
-
-## Automation
-
-### GitHub Actions: Automated Pull Request Review
-
-This repo uses [reviewdog](https://github.com/reviewdog/reviewdog) for automated reviews of Pull Requests. 
-
-You can find the details in [.github/workflows/reviewdog.yml](.github/workflows/reviewdog.yml).
-
-### GitHub Actions: Unit Tests
-
-This repo has automated unit tests for pull requests. 
-
-You can find the details in [.github/workflows/CI.yml](.github/workflows/CI.yml).
-
-### GH Actions/Workflow: Build Docker Images
-
-This repo uses GH Actions and Workflows to test the code and automatically build docker images.
-
-Docker Images are automatically pushed based on the configuration done in [.ci_env](.ci_env) and the two [GitHub Secrets](https://github.com/keptn-sandbox/keptn-service-template-go/settings/secrets/actions)
-* `REGISTRY_USER` - your DockerHub username
-* `REGISTRY_PASSWORD` - a DockerHub [access token](https://hub.docker.com/settings/security) (alternatively, your DockerHub password)
-
-## How to release a new version of this service
-
-It is assumed that the current development takes place in the `main`/`master` branch (either via Pull Requests or directly).
-
-Once you're ready, go to the Actions tab on GitHub, select Pre-Release or Release, and run the action.
-
-
-## License
-
-Please find more information in the [LICENSE](LICENSE) file.
+```
