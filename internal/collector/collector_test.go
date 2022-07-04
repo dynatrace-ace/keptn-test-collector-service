@@ -76,18 +76,18 @@ func TestGetEvents(t *testing.T) {
 func TestParseEventsOfType(t *testing.T) {
 	c := NewCollector()
 
-	events := c.ParseEventsOfType([]cloudevents.Event{}, "")
+	events := c.ParseEvents([]cloudevents.Event{}, "", "")
 	assert.Equal(t, len(events), 0)
 }
 
 func TestMustParseEventsOfType(t *testing.T) {
 	c := NewCollector()
 
-	events, err := c.MustParseEventsOfType([]cloudevents.Event{}, "sh.keptn.event.test.finished")
+	events, err := c.MustParseEvents([]cloudevents.Event{}, "sh.keptn.event.test.finished", "")
 	assert.Error(t, err, "no events found")
 	assert.Equal(t, len(events), 0)
 
-	events, err = c.MustParseEventsOfType([]cloudevents.Event{newMockTestFinishedEvent(), newMockTestStartedEvent()}, "sh.keptn.event.test.finished")
+	events, err = c.MustParseEvents([]cloudevents.Event{newMockTestFinishedEvent(), newMockTestStartedEvent()}, "sh.keptn.event.test.finished", "")
 	assert.NilError(t, err)
 	assert.Equal(t, len(events), 1)
 }

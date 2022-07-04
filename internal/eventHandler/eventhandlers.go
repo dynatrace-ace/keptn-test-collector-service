@@ -66,10 +66,13 @@ func CollectionCloudEventHandler(
 
 	var collectionStartEventsInContext []event.Event
 	var collectionStartEventFilter string
+	var collectionStartStageFilter string
 	var collectionEndEventsInContext []event.Event
 	var collectionEndEventFilter string
+	var collectionEndStageFilter string
 	var syntheticTestFinishedEventsInContext []event.Event
 	var syntheticTestFinishedEventFilter string
+	var syntheticTestFinishedStageFilter string
 
 	collectionStartContext, err := collectionEventDataIface.GetEvaluationStartContext()
 	if err != nil {
@@ -78,6 +81,7 @@ func CollectionCloudEventHandler(
 	}
 
 	collectionStartEventFilter = collectionEventDataIface.GetEvaluationStartEventFilter()
+	collectionStartStageFilter = collectionEventDataIface.GetEvaluationStartStageFilter()
 
 	collectionStartEventsInContext, err = collectorIface.GetEvents(collectionStartContext)
 	if err != nil {
@@ -92,6 +96,7 @@ func CollectionCloudEventHandler(
 	}
 
 	collectionEndEventFilter = collectionEventDataIface.GetEvaluationEndEventFilter()
+	collectionEndStageFilter = collectionEventDataIface.GetEvaluationEndStageFilter()
 
 	isSameContextAsStart := collectionEndContext == collectionStartContext
 
@@ -112,6 +117,7 @@ func CollectionCloudEventHandler(
 	}
 
 	syntheticTestFinishedEventFilter = collectionEventDataIface.GetSyntheticTestFinishedEventFilter()
+	syntheticTestFinishedStageFilter = collectionEventDataIface.GetSyntheticTestFinishedStageFilter()
 
 	isSameContextAsStart = syntheticTestFinishedContext == collectionStartContext
 	isSameContextAsEnd := syntheticTestFinishedContext == collectionEndContext
@@ -129,7 +135,7 @@ func CollectionCloudEventHandler(
 	}
 
 	// Evaluation start is earliest event timestamp
-	evaluationStartEvents := collectorIface.ParseEventsOfType(collectionStartEventsInContext, collectionStartEventFilter)
+	evaluationStartEvents := collectorIface.ParseEvents(collectionStartEventsInContext, collectionStartEventFilter, collectionStartStageFilter)
 
 	evaluationStart, err := collectorIface.CollectEarliestTime(evaluationStartEvents, true)
 	if err != nil {
@@ -139,7 +145,7 @@ func CollectionCloudEventHandler(
 	}
 
 	// Evaluation end is latest event timestamp
-	evaluationEndEvents := collectorIface.ParseEventsOfType(collectionEndEventsInContext, collectionEndEventFilter)
+	evaluationEndEvents := collectorIface.ParseEvents(collectionEndEventsInContext, collectionEndEventFilter, collectionEndStageFilter)
 	evaluationEnd, err := collectorIface.CollectLatestTime(evaluationEndEvents, true)
 	if err != nil {
 		errMsg := fmt.Errorf("ABORTING. Failed to collect end timestamps for context %s, filtered by \"%s\": %s", collectionEndContext, collectionEndEventFilter, err.Error())
@@ -147,7 +153,7 @@ func CollectionCloudEventHandler(
 		return sendTaskFail(myKeptn, eventData, serviceName, errMsg)
 	}
 
-	syntheticTestFinishedEvents := collectorIface.ParseEventsOfType(syntheticTestFinishedEventsInContext, syntheticTestFinishedEventFilter)
+	syntheticTestFinishedEvents := collectorIface.ParseEvents(syntheticTestFinishedEventsInContext, syntheticTestFinishedEventFilter, syntheticTestFinishedStageFilter)
 
 	isSyntheticTestFinishedEventFound := len(syntheticTestFinishedEvents) > 0
 

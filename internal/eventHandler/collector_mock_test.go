@@ -125,31 +125,31 @@ func (mr *MockCollectorIfaceMockRecorder) GetEventsOfType(eventType, keptnContex
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEventsOfType", reflect.TypeOf((*MockCollectorIface)(nil).GetEventsOfType), eventType, keptnContext)
 }
 
-// MustParseEventsOfType mocks base method.
-func (m *MockCollectorIface) MustParseEventsOfType(events []v2.Event, filterType string) ([]v2.Event, error) {
+// MustParseEvents mocks base method.
+func (m *MockCollectorIface) MustParseEvents(events []v2.Event, typeFilter, stageFilter string) ([]v2.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MustParseEventsOfType", events, filterType)
+	ret := m.ctrl.Call(m, "MustParseEvents", events, typeFilter, stageFilter)
 	ret0, _ := ret[0].([]v2.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// MustParseEventsOfType indicates an expected call of MustParseEventsOfType.
-func (mr *MockCollectorIfaceMockRecorder) MustParseEventsOfType(events, filterType interface{}) *gomock.Call {
+// MustParseEvents indicates an expected call of MustParseEvents.
+func (mr *MockCollectorIfaceMockRecorder) MustParseEvents(events, typeFilter, stageFilter interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MustParseEventsOfType", reflect.TypeOf((*MockCollectorIface)(nil).MustParseEventsOfType), events, filterType)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MustParseEvents", reflect.TypeOf((*MockCollectorIface)(nil).MustParseEvents), events, typeFilter, stageFilter)
 }
 
-// ParseEventsOfType mocks base method.
-func (m *MockCollectorIface) ParseEventsOfType(events []v2.Event, filterType string) []v2.Event {
+// ParseEvents mocks base method.
+func (m *MockCollectorIface) ParseEvents(events []v2.Event, typeFilter, stageFilter string) []v2.Event {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ParseEventsOfType", events, filterType)
+	ret := m.ctrl.Call(m, "ParseEvents", events, typeFilter, stageFilter)
 	ret0, _ := ret[0].([]v2.Event)
 	return ret0
 }
 
-// ParseEventsOfType indicates an expected call of ParseEventsOfType.
-func (mr *MockCollectorIfaceMockRecorder) ParseEventsOfType(events, filterType interface{}) *gomock.Call {
+// ParseEvents indicates an expected call of ParseEvents.
+func (mr *MockCollectorIfaceMockRecorder) ParseEvents(events, typeFilter, stageFilter interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseEventsOfType", reflect.TypeOf((*MockCollectorIface)(nil).ParseEventsOfType), events, filterType)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseEvents", reflect.TypeOf((*MockCollectorIface)(nil).ParseEvents), events, typeFilter, stageFilter)
 }

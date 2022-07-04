@@ -84,13 +84,13 @@ func TestSyntheticCloudEventHandler(t *testing.T) {
 	}, nil).AnyTimes()
 	m.EXPECT().CollectExecutionIds(gomock.Any()).Return([]string{"executionId", "executionId", "executionId"}, nil)
 	m.EXPECT().CollectBatchIds(gomock.Any()).Return([]string{"batchId"}, nil)
-	m.EXPECT().ParseEventsOfType(gomock.Any(), "mock.collection.start.event").Return([]cloudevents.Event{
+	m.EXPECT().ParseEvents(gomock.Any(), "mock.collection.start.event", "").Return([]cloudevents.Event{
 		mockStartedEvent,
 	})
-	m.EXPECT().ParseEventsOfType(gomock.Any(), "mock.collection.end.event").Return([]cloudevents.Event{
+	m.EXPECT().ParseEvents(gomock.Any(), "mock.collection.end.event", "").Return([]cloudevents.Event{
 		mockFinishedEvent,
 	})
-	m.EXPECT().ParseEventsOfType(gomock.Any(), "mock.synthetic.finished.event").Return([]cloudevents.Event{
+	m.EXPECT().ParseEvents(gomock.Any(), "mock.synthetic.finished.event", "").Return([]cloudevents.Event{
 		mockSyntheticTestFinishedEvent,
 	})
 
@@ -133,12 +133,12 @@ func TestSyntheticCloudEventHandler(t *testing.T) {
 		mockFinishedEvent,
 	}, nil).AnyTimes()
 
-	m.EXPECT().ParseEventsOfType(gomock.Any(), "").Return([]cloudevents.Event{
+	m.EXPECT().ParseEvents(gomock.Any(), "", "").Return([]cloudevents.Event{
 		mockStartedEvent,
 		mockFinishedEvent,
 	}).Times(2)
 
-	m.EXPECT().ParseEventsOfType(gomock.Any(), "sh.keptn.event.test.finished").Return([]cloudevents.Event{
+	m.EXPECT().ParseEvents(gomock.Any(), "sh.keptn.event.test.finished", "").Return([]cloudevents.Event{
 		mockSyntheticTestFinishedEvent,
 	}).Times(1)
 

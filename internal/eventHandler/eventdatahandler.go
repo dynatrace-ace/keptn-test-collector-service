@@ -13,32 +13,32 @@ const defaultSyntheticTestFinishedEventType = "sh.keptn.event.test.finished"
 type CollectionData struct {
 	EvaluationStartContext         string `json:"evaluationStartContext"`
 	EvaluationStartEventType       string `json:"evaluationStartEventType"`
+	EvaluationStartStage           string `json:"evaluationStartStage"`
 	EvaluationEndContext           string `json:"evaluationEndContext"`
 	EvaluationEndEventType         string `json:"evaluationEndEventType"`
+	EvaluationEndStage             string `json:"evaluationEndStage"`
 	SyntheticTestFinishedContext   string `json:"syntheticTestFinishedContext"`
 	SyntheticTestFinishedEventType string `json:"syntheticTestFinishedEventType"`
+	SyntheticTestFinishedStage     string `json:"syntheticTestFinishedStage"`
 }
 
 type CollectionEventData struct {
 	keptnv2.EventData
-	CollectionStartContext         string         `json:"collectionStartContext"`
-	CollectionStartEventType       string         `json:"collectionStartEventType"`
-	CollectionEndContext           string         `json:"collectionEndContext"`
-	CollectionEndEventType         string         `json:"collectionEndEventType"`
-	SyntheticTestFinishedContext   string         `json:"syntheticTestFinishedContext"`
-	SyntheticTestFinishedEventType string         `json:"syntheticTestFinishedEventType"`
-	Collection                     CollectionData `json:"collection"`
-	eventContext                   cloudevents.EventContext
+	Collection   CollectionData `json:"collection"`
+	eventContext cloudevents.EventContext
 }
 
 type CollectionEventDataIface interface {
 	GetEventData() keptnv2.EventData
 	GetEvaluationStartContext() (string, error)
 	GetEvaluationStartEventFilter() string
+	GetEvaluationStartStageFilter() string
 	GetEvaluationEndContext() (string, error)
 	GetEvaluationEndEventFilter() string
+	GetEvaluationEndStageFilter() string
 	GetSyntheticTestFinishedContext() (string, error)
 	GetSyntheticTestFinishedEventFilter() string
+	GetSyntheticTestFinishedStageFilter() string
 }
 
 /**
@@ -92,6 +92,14 @@ func (collectionEventData *CollectionEventData) GetEvaluationStartEventFilter() 
 }
 
 /**
+ * Parses evaluation start stage. If none was provided in event payload,
+ * empty string filter will be returned.
+ */
+func (collectionEventData *CollectionEventData) GetEvaluationStartStageFilter() string {
+	return collectionEventData.Collection.EvaluationStartStage
+}
+
+/**
  * Parses evaluation end context. If none was provided in event payload,
  * current context will be returned.
  */
@@ -121,6 +129,14 @@ func (collectionEventData *CollectionEventData) GetEvaluationEndContext() (strin
  */
 func (collectionEventData *CollectionEventData) GetEvaluationEndEventFilter() string {
 	return collectionEventData.Collection.EvaluationEndEventType
+}
+
+/**
+ * Parses evaluation end stage. If none was provided in event payload,
+ * empty string filter will be returned.
+ */
+func (collectionEventData *CollectionEventData) GetEvaluationEndStageFilter() string {
+	return collectionEventData.Collection.EvaluationEndStage
 }
 
 /**
@@ -159,6 +175,14 @@ func (collectionEventData *CollectionEventData) GetSyntheticTestFinishedEventFil
 	} else {
 		return defaultSyntheticTestFinishedEventType
 	}
+}
+
+/**
+ * Parses synthetic test finished stage. If none was provided in event payload,
+ * empty string filter will be returned.
+ */
+func (collectionEventData *CollectionEventData) GetSyntheticTestFinishedStageFilter() string {
+	return collectionEventData.Collection.SyntheticTestFinishedStage
 }
 
 func NewEventDataHandler(

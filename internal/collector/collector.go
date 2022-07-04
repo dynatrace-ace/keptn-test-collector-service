@@ -10,6 +10,7 @@ import (
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	keptnv2 "github.com/keptn/go-utils/pkg/lib/v0_2_0"
 )
 
 type Collector struct {
@@ -24,8 +25,8 @@ type CollectorIface interface {
 	// GetTestStartedEvents() ([]cloudevents.Event, error)
 	// GetTestFinishedEvents() ([]cloudevents.Event, error)
 	GetEvents(keptnContext string) ([]cloudevents.Event, error)
-	ParseEventsOfType(events []cloudevents.Event, filterType string) []cloudevents.Event
-	MustParseEventsOfType(events []cloudevents.Event, filterType string) ([]cloudevents.Event, error)
+	ParseEvents(events []cloudevents.Event, typeFilter string, stageFilter string) []cloudevents.Event
+	MustParseEvents(events []cloudevents.Event, typeFilter string, stageFilter string) ([]cloudevents.Event, error)
 	CollectExecutionIds(events []cloudevents.Event) ([]string, error)
 	CollectBatchIds(events []cloudevents.Event) ([]string, error)
 	CollectEarliestTime(events []cloudevents.Event, isFloored bool) (time.Time, error)
@@ -87,20 +88,40 @@ func (c Collector) GetEvents(keptnContext string) ([]cloudevents.Event, error) {
 	return c.GetEventsOfType("", keptnContext)
 }
 
-func (c Collector) ParseEventsOfType(events []cloudevents.Event, filterType string) []cloudevents.Event {
-	eventsOfType := []cloudevents.Event{}
+func (c Collector) ParseEvents(events []cloudevents.Event, typeFilter string, stageFilter string) []cloudevents.Event {
+	isFilteredForType := typeFilter != ""
+	isFilteredForStage := stageFilter != ""
 
-	for _, event := range events {
-		if filterType == "" || filterType == event.Type() {
-			eventsOfType = append(eventsOfType, event)
-		}
+	if !isFilteredForType && !isFilteredForStage {
+		return events
 	}
 
-	return eventsOfType
+	filteredEvents := []cloudevents.Event{}
+
+	for _, event := range events {
+		if isFilteredForType && typeFilter != event.Type() {
+			continue
+		}
+
+		eventData := keptnv2.EventData{}
+		err := event.DataAs(&eventData)
+		if err != nil {
+			fmt.Println(err.Error())
+			continue
+		}
+
+		if isFilteredForStage && stageFilter != eventData.Stage {
+			continue
+		}
+
+		filteredEvents = append(filteredEvents, event)
+	}
+
+	return filteredEvents
 }
 
-func (c Collector) MustParseEventsOfType(events []cloudevents.Event, filterType string) ([]cloudevents.Event, error) {
-	eventsOfType := c.ParseEventsOfType(events, filterType)
+func (c Collector) MustParseEvents(events []cloudevents.Event, typeFilter string, stageFilter string) ([]cloudevents.Event, error) {
+	eventsOfType := c.ParseEvents(events, typeFilter, stageFilter)
 
 	if len(events) < 1 {
 		return eventsOfType, fmt.Errorf("no events found")
